@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 سامانه هوشمند کشف سیارات - نسخه بی‌نهایت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ============================================================
+           ROOT VARIABLES
+           ============================================================ */
+        :root {
+            --gold: #f0b83a;
+            --gold-light: #f5d78a;
+            --gold-dark: #b45309;
+            --bg-dark: #020408;
+            --text-light: #eef2f8;
+            --glass: rgba(255,255,255,0.012);
+            --border: rgba(255,255,255,0.02);
+            --shadow: 0 80px 200px rgba(0,0,0,0.95);
+            --radius: 52px;
+            --transition: 0.6s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 14px;
+            direction: rtl;
+            background-image:
+                radial-gradient(ellipse at 3% 12%, rgba(30,60,200,0.06) 0%, transparent 40%),
+                radial-gradient(ellipse at 97% 88%, rgba(150,30,200,0.04) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(240,184,58,0.01) 0%, transparent 70%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ============================================================
+           UNIVERSE BACKGROUND - 3D
+           ============================================================ */
+        #universe {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            perspective: 800px;
+        }
+
+        .star-layer {
+            position: absolute;
+            inset: 0;
+        }
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .star.pulsar {
+            animation: pulsarGlow var(--duration) ease-in-out infinite alternate;
+        }
+
+        @keyframes pulsarGlow {
+            0% { opacity: 0.1; transform: scale(0.4); box-shadow: 0 0 0 rgba(255,255,255,0); }
+            100% { opacity: 1; transform: scale(1.6); box-shadow: 0 0 30px rgba(255,255,255,0.05); }
+        }
+
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.04;
+            animation: nebulaFloat 30s ease-in-out infinite alternate;
+        }
+
+        @keyframes nebulaFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(60px, -40px) scale(1.2); }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 30px 6px rgba(255,255,255,0.06);
+            animation: shoot linear infinite;
+        }
+
+        @keyframes shoot {
+            0% { transform: translate(0, 0) scale(0); opacity: 1; }
+            60% { opacity: 1; }
+            100% { transform: translate(-600px, 600px) scale(2); opacity: 0; }
+        }
+
+        .galaxy-spiral {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(100,60,200,0.02) 0%, transparent 70%);
+            animation: galaxyRotate 60s linear infinite;
+        }
+
+        @keyframes galaxyRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================================
+           MAIN CONTAINER
+           ============================================================ */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(2,4,8,0.94);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: var(--radius);
+            padding: 44px 52px 36px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.003);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .brand .logo-icon {
+            font-size: 3.8rem;
+            color: var(--gold);
+            animation: floatY 3.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 80px rgba(240,184,58,0.04));
+        }
+
+        @keyframes floatY {
+            0%,100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        .brand h1 {
+            font-size: 2.6rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold), var(--gold-light));
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmerText 3s linear infinite;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes shimmerText {
+            0% { background-position: 0% center; }
+            100% { background-position: 300% center; }
+        }
+
+        .brand .sub {
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 300;
+            opacity: 0.15;
+            letter-spacing: 7px;
+            -webkit-text-fill-color: #8899bb;
+            text-transform: uppercase;
+        }
+
+        .header-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass);
+            padding: 6px 18px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulseDot 1.6s infinite;
+            box-shadow: 0 0 40px rgba(74,222,128,0.04);
+        }
+
+        @keyframes pulseDot {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.05; transform: scale(0.2); }
+        }
+
+        .status-badge span {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #4ade80;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-ghost {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.4s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(240,184,58,0.04);
+            color: var(--gold);
+            background: rgba(240,184,58,0.01);
+        }
+
+        .btn-ghost.active {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(240,184,58,0.02);
+        }
+
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            background: var(--glass);
+            border-radius: 50px;
+            padding: 3px 14px 3px 3px;
+            border: 1px solid var(--border);
+            transition: 0.4s;
+        }
+
+        .search-wrap:focus-within {
+            border-color: rgba(240,184,58,0.04);
+            background: rgba(255,255,255,0.01);
+            box-shadow: 0 0 80px rgba(240,184,58,0.005);
+        }
+
+        .search-wrap input {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            outline: none;
+            width: 160px;
+        }
+
+        .search-wrap input::placeholder {
+            color: rgba(255,255,255,0.04);
+        }
+
+        .search-wrap i {
+            color: rgba(255,255,255,0.04);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+            padding: 6px 10px;
+            border-radius: 50%;
+        }
+
+        .search-wrap i:hover {
+            color: var(--gold);
+            background: rgba(240,184,58,0.01);
+        }
+
+        /* ============================================================
+           HERO SECTION
+           ============================================================ */
+        .hero {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 55px;
+            margin-bottom: 38px;
+            align-items: center;
+        }
+
+        .hero-content h2 {
+            font-size: 4.2rem;
+            font-weight: 900;
+            line-height: 1.0;
+            margin-bottom: 16px;
+        }
+
+        .hero-content h2 .glow {
+            background: linear-gradient(135deg, var(--gold), #f59e0b, var(--gold), #f59e0b);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmerText 2.5s linear infinite;
+        }
+
+        .hero-content .desc {
+            font-size: 1.05rem;
+            line-height: 2.3;
+            opacity: 0.25;
+            max-width: 75%;
+            margin-bottom: 28px;
+        }
+
+        .hero-content .desc strong {
+            color: var(--gold);
+            opacity: 0.9;
+        }
+
+        .hero-metrics {
+            display: flex;
+            gap: 50px;
+            flex-wrap: wrap;
+            background: var(--glass);
+            padding: 20px 34px;
+            border-radius: 26px;
+            border: 1px solid var(--border);
+        }
+
+        .hero-metrics .item {
+            text-align: center;
+            cursor: pointer;
+            transition: 0.4s;
+            padding: 4px 12px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .hero-metrics .item:hover {
+            background: rgba(240,184,58,0.015);
+            transform: translateY(-6px);
+        }
+
+        .hero-metrics .item .num {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--gold);
+            display: block;
+            letter-spacing: 1px;
+            transition: 0.4s;
+        }
+
+        .hero-metrics .item:hover .num {
+            transform: scale(1.06);
+        }
+
+        .hero-metrics .item .lbl {
+            font-size: 0.7rem;
+            opacity: 0.15;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .planet-sphere {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            cursor: pointer;
+        }
+
+        .planet-sphere .core {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 28% 22%, var(--gold-light), var(--gold-dark) 55%, #5a2e0a);
+            box-shadow: 0 0 140px rgba(240,184,58,0.03), 0 0 320px rgba(240,184,58,0.01);
+            animation: spinPlanet 12s linear infinite;
+            transition: 0.7s var(--transition);
+            position: relative;
+        }
+
+        .planet-sphere:hover .core {
+            transform: scale(1.05);
+            box-shadow: 0 0 260px rgba(240,184,58,0.08), 0 0 420px rgba(240,184,58,0.02);
+        }
+
+        .planet-sphere .core::before {
+            content: '';
+            position: absolute;
+            inset: -50px;
+            border-radius: 50%;
+            border: 2px solid rgba(240,184,58,0.015);
+            animation: spinPlanet 9s linear infinite reverse;
+        }
+
+        .planet-sphere .core::after {
+            content: '✦';
+            position: absolute;
+            top: -80px;
+            right: -45px;
+            font-size: 4.5rem;
+            color: var(--gold);
+            opacity: 0.04;
+            animation: floatY 5s ease-in-out infinite;
+        }
+
+        .planet-sphere .orbit-1 {
+            position: absolute;
+            inset: -70px;
+            border-radius: 50%;
+            border: 1px dashed rgba(240,184,58,0.008);
+            animation: spinPlanet 16s linear infinite;
+        }
+
+        .planet-sphere .orbit-1::before {
+            content: '●';
+            position: absolute;
+            top: -6px;
+            right: 50%;
+            font-size: 0.5rem;
+            color: rgba(240,184,58,0.015);
+        }
+
+        .planet-sphere .orbit-2 {
+            position: absolute;
+            inset: -100px;
+            border-radius: 50%;
+            border: 1px dashed rgba(240,184,58,0.004);
+            animation: spinPlanet 24s linear infinite reverse;
+        }
+
+        .planet-sphere .orbit-2::after {
+            content: '●';
+            position: absolute;
+            bottom: -6px;
+            left: 20%;
+            font-size: 0.4rem;
+            color: rgba(240,184,58,0.01);
+        }
+
+        @keyframes spinPlanet {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================================
+           DISCOVERIES
+           ============================================================ */
+        .discoveries-section {
+            margin: 28px 0 22px;
+        }
+
+        .section-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .section-bar .title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .section-bar .title i {
+            color: var(--gold);
+        }
+
+        .section-bar .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .section-bar .view-all {
+            font-size: 0.7rem;
+            opacity: 0.15;
+            cursor: pointer;
+            transition: 0.4s;
+            letter-spacing: 0.5px;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid transparent;
+        }
+
+        .section-bar .view-all:hover {
+            opacity: 0.7;
+            color: var(--gold);
+            border-color: rgba(240,184,58,0.02);
+        }
+
+        .sort-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .sort-group button {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: rgba(255,255,255,0.08);
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.4s;
+        }
+
+        .sort-group button:hover {
+            border-color: rgba(240,184,58,0.02);
+            color: var(--gold);
+        }
+
+        .sort-group button.active {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(240,184,58,0.01);
+        }
+
+        .planet-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .planet-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 30px 18px 20px;
+            text-align: center;
+            transition: all 0.6s var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .planet-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(240,184,58,0.004) 0%, transparent 35%);
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .planet-card:hover {
+            transform: translateY(-18px) scale(1.02);
+            background: rgba(255,255,255,0.015);
+            border-color: rgba(240,184,58,0.03);
+            box-shadow: 0 50px 140px rgba(0,0,0,0.6);
+        }
+
+        .planet-card:hover::before {
+            opacity: 1;
+        }
+
+        .planet-card .emoji {
+            font-size: 4.5rem;
+            display: block;
+            margin-bottom: 6px;
+            filter: drop-shadow(0 0 80px rgba(240,184,58,0.003));
+            transition: 0.6s;
+        }
+
+        .planet-card:hover .emoji {
+            transform: scale(1.2) rotate(-10deg);
+        }
+
+        .planet-card .pname {
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+        }
+
+        .planet-card .psub {
+            font-size: 0.7rem;
+            opacity: 0.15;
+            margin-top: 4px;
+            font-weight: 300;
+        }
+
+        .planet-card .pdist {
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: var(--gold);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            opacity: 0.3;
+        }
+
+        .planet-card .tag {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.4rem;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-new { background: rgba(240,184,58,0.03); color: var(--gold); border: 1px solid rgba(240,184,58,0.015); }
+        .tag-hot { background: rgba(239,68,68,0.03); color: #ef4444; border: 1px solid rgba(239,68,68,0.015); }
+        .tag-pop { background: rgba(96,165,250,0.03); color: #60a5fa; border: 1px solid rgba(96,165,250,0.015); }
+        .tag-rare { background: rgba(168,85,247,0.03); color: #a855f7; border: 1px solid rgba(168,85,247,0.015); }
+
+        /* ============================================================
+           FEATURES
+           ============================================================ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 26px 0 4px;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: 0.5s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--gold);
+            opacity: 0;
+            transition: 0.4s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255,255,255,0.008);
+            border-color: rgba(240,184,58,0.01);
+            transform: translateY(-5px);
+        }
+
+        .feature-card:hover::after {
+            opacity: 0.08;
+        }
+
+        .feature-card i {
+            font-size: 1.8rem;
+            color: var(--gold);
+            opacity: 0.1;
+            width: 44px;
+            text-align: center;
+            transition: 0.5s;
+        }
+
+        .feature-card:hover i {
+            opacity: 0.7;
+            transform: scale(1.15) rotate(-8deg);
+        }
+
+        .feature-card .info h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .feature-card .info p {
+            font-size: 0.6rem;
+            opacity: 0.08;
+            font-weight: 300;
+        }
+
+        /* ============================================================
+           LOADING
+           ============================================================ */
+        .loader {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 0;
+            gap: 14px;
+        }
+
+        .loader.active {
+            display: flex;
+        }
+
+        .loader .spinner {
+            width: 38px;
+            height: 38px;
+            border: 2px solid rgba(240,184,58,0.01);
+            border-top: 2px solid var(--gold);
+            border-radius: 50%;
+            animation: spinLoader 0.6s linear infinite;
+        }
+
+        @keyframes spinLoader {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================================
+           MODAL
+           ============================================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(24px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeModal 0.35s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeModal {
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-box {
+            background: rgba(2,4,8,0.96);
+            backdrop-filter: blur(28px);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 48px 54px;
+            max-width: 600px;
+            width: 92%;
+            box-shadow: var(--shadow);
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-box .close-btn {
+            position: absolute;
+            top: 18px;
+            left: 24px;
+            font-size: 1.6rem;
+            cursor: pointer;
+            opacity: 0.05;
+            transition: 0.4s;
+            background: none;
+            border: none;
+            color: white;
+        }
+
+        .modal-box .close-btn:hover {
+            opacity: 0.8;
+            transform: rotate(90deg);
+        }
+
+        .modal-box .m-emoji {
+            font-size: 7.5rem;
+            display: block;
+            margin-bottom: 6px;
+            animation: floatY 4s ease-in-out infinite;
+        }
+
+        .modal-box h2 {
+            font-size: 2.4rem;
+            margin-bottom: 4px;
+            color: var(--gold);
+        }
+
+        .modal-box .m-sub {
+            opacity: 0.15;
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .modal-box .m-details {
+            text-align: right;
+            background: var(--glass);
+            border-radius: 20px;
+            padding: 16px 22px;
+            margin: 14px 0 22px;
+        }
+
+        .modal-box .m-details div {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .modal-box .m-details div:last-child {
+            border-bottom: none;
+        }
+
+        .modal-box .m-details .lbl {
+            opacity: 0.08;
+        }
+
+        .modal-box .m-details .val {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .modal-actions button {
+            padding: 10px 36px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.4s;
+            border: none;
+        }
+
+        .modal-actions .btn-explore {
+            background: rgba(240,184,58,0.03);
+            border: 1px solid rgba(240,184,58,0.04);
+            color: var(--gold);
+        }
+
+        .modal-actions .btn-explore:hover {
+            background: rgba(240,184,58,0.06);
+            transform: scale(1.04);
+            box-shadow: 0 0 80px rgba(240,184,58,0.01);
+        }
+
+        .modal-actions .btn-fav {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: rgba(255,255,255,0.1);
+        }
+
+        .modal-actions .btn-fav:hover {
+            border-color: rgba(239,68,68,0.06);
+            color: #ef4444;
+        }
+
+        .modal-actions .btn-fav.is-fav {
+            color: #ef4444;
+            border-color: rgba(239,68,68,0.06);
+        }
+
+        /* ============================================================
+           TOAST
+           ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(2,4,8,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 14px 34px;
+            border-radius: 22px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            z-index: 2000;
+            transform: translateY(150px);
+            opacity: 0;
+            transition: all 0.7s var(--transition);
+            box-shadow: 0 40px 120px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            max-width: 480px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast .t-icon {
+            font-size: 1.3rem;
+        }
+
+        .toast .t-icon.ok { color: #4ade80; }
+        .toast .t-icon.info { color: #60a5fa; }
+        .toast .t-icon.warn { color: #fbbf24; }
+        .toast .t-icon.err { color: #ef4444; }
+
+        /* ============================================================
+           FOOTER / CREDIT
+           ============================================================ */
+        .footer-credit {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0.12;
+            transition: opacity 0.4s;
+            letter-spacing: 0.3px;
+            direction: ltr;
+        }
+
+        .footer-credit:hover {
+            opacity: 0.35;
+        }
+
+        .footer-credit a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .footer-credit a:hover {
+            border-bottom-color: var(--gold);
+            opacity: 0.9;
+        }
+
+        .footer-credit .heart {
+            color: #ef4444;
+            display: inline-block;
+            animation: heartbeat 1.8s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.2); }
+            70% { transform: scale(1); }
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 1100px) {
+            .hero { grid-template-columns: 1fr; text-align: center; gap: 30px; }
+            .hero-content .desc { max-width: 100%; }
+            .hero-metrics { justify-content: center; }
+            .planet-grid { grid-template-columns: repeat(2, 1fr); }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { padding: 20px 16px; border-radius: 28px; }
+            .brand h1 { font-size: 1.4rem; }
+            .hero-content h2 { font-size: 2.2rem; }
+            .header { flex-direction: column; align-items: stretch; gap: 12px; }
+            .header-tools { justify-content: center; }
+            .search-wrap input { width: 100px; }
+            .planet-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .features-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .hero-metrics { flex-wrap: wrap; padding: 14px 16px; gap: 20px; }
+            .hero-metrics .item .num { font-size: 1.6rem; }
+            .planet-sphere { width: 170px; height: 170px; }
+            .section-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .modal-box { padding: 28px 20px; }
+            .toast { right: 16px; left: 16px; max-width: calc(100% - 32px); padding: 12px 18px; font-size: 0.8rem; }
+        }
+
+        @media (max-width: 480px) {
+            .planet-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .hero-content h2 { font-size: 1.7rem; }
+            .hero-metrics { flex-direction: column; gap: 8px; }
+            .brand .logo-icon { font-size: 2.2rem; }
+            .brand h1 { font-size: 1.1rem; }
+            .header-tools .btn-ghost span { display: none; }
+            .planet-sphere { width: 130px; height: 130px; }
+            .modal-actions { flex-direction: column; }
+            .modal-actions button { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    UNIVERSE BACKGROUND - 3D
+    ============================================================ -->
+    <div id="universe"></div>
+
+    <!-- ============================================================
+    TOAST
+    ============================================================ -->
+    <div class="toast" id="toast">
+        <span class="t-icon ok" id="toastIcon"><i class="fas fa-check-circle"></i></span>
+        <span id="toastMsg">عملیات موفق</span>
+    </div>
+
+    <!-- ============================================================
+    MODAL
+    ============================================================ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="closeModal()">✕</button>
+            <span class="m-emoji" id="mEmoji">🪐</span>
+            <h2 id="mName">Kepler-442b</h2>
+            <div class="m-sub" id="mSub">منطقه قابل سکونت</div>
+            <div class="m-details">
+                <div><span class="lbl">فاصله</span><span class="val" id="mDist">۱,۲۰۰ سال نوری</span></div>
+                <div><span class="lbl">جرم</span><span class="val" id="mMass">۲.۳ برابر زمین</span></div>
+                <div><span class="lbl">سال کشف</span><span class="val" id="mYear">۲۰۱۵</span></div>
+                <div><span class="lbl">وضعیت</span><span class="val" id="mStatus">✅ تأیید شده</span></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-explore" onclick="explorePlanet()"><i class="fas fa-rocket"></i> کاوش عمیق</button>
+                <button class="btn-fav" onclick="toggleFav()"><i class="far fa-heart"></i> علاقه‌مندی</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    MAIN CONTAINER
+    ============================================================ -->
+    <div class="main-container">
+
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <div class="brand">
+                <div class="logo-icon"><i class="fas fa-rocket"></i></div>
+                <div>
+                    <h1>سامانه کشف سیارات</h1>
+                    <span class="sub">🔭 NASA · Exoplanet Archive v6.0</span>
+                </div>
+            </div>
+            <div class="header-tools">
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    <span>سیستم فعال</span>
+                </div>
+                <button class="btn-ghost" onclick="toggleFilter()">
+                    <i class="fas fa-sliders-h"></i> <span>فیلتر</span>
+                </button>
+                <button class="btn-ghost" onclick="showFavs()">
+                    <i class="fas fa-heart"></i> <span>علاقه‌مندی‌ها</span>
+                </button>
+                <button class="btn-ghost" onclick="resetAll()">
+                    <i class="fas fa-undo"></i> <span>بازنشانی</span>
+                </button>
+                <div class="search-wrap">
+                    <input type="text" placeholder="جستجو..." id="searchInput">
+                    <i class="fas fa-search" onclick="searchPlanet()"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HERO ===== -->
+        <div class="hero">
+            <div class="hero-content">
+                <h2>
+                    کشف شگفت‌انگیز! <br>
+                    <span class="glow">سیاره قابل سکونت</span>
+                </h2>
+                <p class="desc">
+                    تلسکوپ فضایی جیمز وب سیاره‌ای جدید در منطقه قابل سکونت کشف کرد.
+                    این سیاره فقط <strong>۴۱ سال نوری</strong> از زمین فاصله دارد.
+                    <span style="display:block;opacity:0.08;font-size:0.8rem;margin-top:6px;">
+                        ⚡ داده‌های لحظه‌ای از پایگاه ناسا
+                    </span>
+                </p>
+                <div class="hero-metrics">
+                    <div class="item" onclick="statClick('۵,۶۴۲','سیاره کشف شده')">
+                        <span class="num" id="stat1">۰</span>
+                        <span class="lbl">سیاره کشف شده</span>
+                    </div>
+                    <div class="item" onclick="statClick('۱۲۴','منطقه قابل سکونت')">
+                        <span class="num" id="stat2">۰</span>
+                        <span class="lbl">منطقه قابل سکونت</span>
+                    </div>
+                    <div class="item" onclick="statClick('۲۸','ماموریت فعال')">
+                        <span class="num" id="stat3">۰</span>
+                        <span class="lbl">ماموریت فعال</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="planet-sphere" onclick="toast('🌍 دریافت تصویر از تلسکوپ جیمز وب...', 'info')">
+                    <div class="core"></div>
+                    <div class="orbit-1"></div>
+                    <div class="orbit-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DISCOVERIES ===== -->
+        <div class="discoveries-section">
+            <div class="section-bar">
+                <div class="title"><i class="fas fa-globe-asia"></i> تازه‌ترین کشفیات</div>
+                <div class="actions">
+                    <div class="sort-group">
+                        <button class="active" onclick="sortPlanets('default')">جدید</button>
+                        <button onclick="sortPlanets('distance')">فاصله</button>
+                        <button onclick="sortPlanets('name')">نام</button>
+                    </div>
+                    <span class="view-all" onclick="toast('📡 دریافت لیست کامل از پایگاه ناسا...', 'info')">
+                        همه <i class="fas fa-arrow-left" style="margin-right:6px;"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="planet-grid" id="planetGrid"></div>
+            <div class="loader" id="loader"><div class="spinner"></div><span style="opacity:0.08;">بارگذاری داده‌ها...</span></div>
+        </div>
+
+        <!-- ===== FEATURES ===== -->
+        <div class="features-grid">
+            <div class="feature-card" onclick="toast('📡 اتصال به ناسا برقرار (Latency: 3ms, Bandwidth: 5Gbps)', 'success')">
+                <i class="fas fa-satellite"></i>
+                <div class="info"><h4>داده‌های لحظه‌ای</h4><p>متصل به ناسا</p></div>
+            </div>
+            <div class="feature-card" onclick="toast('🧠 تحلیل طیف‌های نوری با AI (مدل DeepSpace-Net v6.0)...', 'info')">
+                <i class="fas fa-brain"></i>
+                <div class="info"><h4>هوش مصنوعی</h4><p>تحلیل پیشرفته</p></div>
+            </div>
+            <div class="feature-card" onclick="toast('📊 بارگذاری نمودارهای سه‌بعدی تعاملی...', 'info')">
+                <i class="fas fa-chart-line"></i>
+                <div class="info"><h4>نمودارهای علمی</h4><p>داده‌های نجومی</p></div>
+            </div>
+            <div class="feature-card" onclick="toast('🔭 اسکن عمیق منطقه GJ 1132 با رزولوشن 0.0002 arcsec...', 'info')">
+                <i class="fas fa-telescope"></i>
+                <div class="info"><h4>اسکن پیشرفته</h4><p>کشف سیارات جدید</p></div>
+            </div>
+        </div>
+
+        <!-- ===== FOOTER CREDIT ===== -->
+        <div class="footer-credit">
+            ساخته شده با <span class="heart">❤️</span> توسط 
+            <a href="https://eitaa.com/irandigital_python" target="_blank">محمد حسین حبیبی راد</a>
+            <span style="margin:0 8px;opacity:0.15;">|</span>
+            <i class="fas fa-code" style="opacity:0.15;"></i>
+            <span style="margin:0 6px;opacity:0.15;">v6.0</span>
+        </div>
+
+    </div>
+
+    <!-- ============================================================
+    JAVASCRIPT - FULL APPLICATION
+    ============================================================ -->
+    <script>
+        // ============================================================
+        // DATA - 20 PLANETS
+        // ============================================================
+        const PLANETS = [
+            { emoji: '🪐', name: 'Kepler-442b', sub: 'منطقه قابل سکونت', dist: '۱,۲۰۰', mass: '۲.۳', year: '۲۰۱۵', status: '✅ تأیید شده', tag: 'new' },
+            { emoji: '🌍', name: 'Proxima b', sub: 'نزدیک‌ترین سیاره', dist: '۴.۲', mass: '۱.۳', year: '۲۰۱۶', status: '✅ تأیید شده', tag: 'hot' },
+            { emoji: '🔴', name: 'GJ 1132b', sub: 'جو غلیظ با متان', dist: '۴۱', mass: '۱.۶', year: '۲۰۲۴', status: '🔄 در حال بررسی', tag: 'new' },
+            { emoji: '🌌', name: 'TRAPPIST-1e', sub: '۷ سیاره در یک سیستم', dist: '۴۰', mass: '۰.۷', year: '۲۰۱۷', status: '✅ تأیید شده', tag: null },
+            { emoji: '🌑', name: 'HD 209458b', sub: 'دنباله‌ای شگفت‌انگیز', dist: '۱۵۰', mass: '۰.۷', year: '۱۹۹۹', status: '✅ تأیید شده', tag: null },
+            { emoji: '🪐', name: 'Kepler-452b', sub: 'پسرخواهر زمین', dist: '۱,۴۰۰', mass: '۵.۰', year: '۲۰۱۵', status: '✅ تأیید شده', tag: 'pop' },
+            { emoji: '🌟', name: 'LHS 1140b', sub: 'منطقه قابل سکونت', dist: '۴۰', mass: '۶.۵', year: '۲۰۱۷', status: '✅ تأیید شده', tag: null },
+            { emoji: '☀️', name: 'K2-18b', sub: 'آب در جو!', dist: '۱۲۴', mass: '۸.۶', year: '۲۰۱۵', status: '✅ تأیید شده', tag: 'hot' },
+            { emoji: '💫', name: 'GJ 1214b', sub: 'سیاره آبی', dist: '۴۷', mass: '۶.۵', year: '۲۰۰۹', status: '✅ تأیید شده', tag: 'rare' },
+            { emoji: '🌊', name: 'Kepler-22b', sub: 'اقیانوس عظیم', dist: '۶۰۰', mass: '۲.۴', year: '۲۰۱۱', status: '✅ تأیید شده', tag: 'pop' },
+            { emoji: '🔥', name: 'HD 189733b', sub: 'آبی تیره با باد ۸۷۰۰ کیلومتری', dist: '۶۳', mass: '۱.۱', year: '۲۰۰۵', status: '✅ تأیید شده', tag: 'hot' },
+            { emoji: '🌿', name: 'Kepler-186f', sub: 'اولین سیاره قابل سکونت', dist: '۵۸۰', mass: '۱.۴', year: '۲۰۱۴', status: '✅ تأیید شده', tag: 'new' },
+            { emoji: '🌈', name: 'WASP-12b', sub: 'سیاره کربنی', dist: '۱,۴۰۰', mass: '۱.۴', year: '۲۰۰۸', status: '✅ تأیید شده', tag: 'rare' },
+            { emoji: '🌀', name: 'OGLE-2005-BLG-390Lb', sub: 'سیاره یخی', dist: '۲۱,۵۰۰', mass: '۵.۵', year: '۲۰۰۶', status: '✅ تأیید شده', tag: null },
+            { emoji: '🌋', name: 'CoRoT-7b', sub: 'سیاره گدازه‌ای', dist: '۴۸۰', mass: '۴.۸', year: '۲۰۰۹', status: '✅ تأیید شده', tag: 'hot' },
+            { emoji: '✨', name: 'GJ 357d', sub: 'منطقه قابل سکونت', dist: '۳۱', mass: '۶.۱', year: '۲۰۱۹', status: '✅ تأیید شده', tag: 'new' },
+            { emoji: '🌙', name: 'Kepler-1649c', sub: 'نزدیک به اندازه زمین', dist: '۳۰۰', mass: '۱.۰', year: '۲۰۲۰', status: '✅ تأیید شده', tag: 'new' },
+            { emoji: '🌟', name: 'TOI-700d', sub: 'منطقه قابل سکونت', dist: '۱۰۰', mass: '۱.۷', year: '۲۰۲۰', status: '✅ تأیید شده', tag: 'pop' },
+            { emoji: '💎', name: '55 Cancri e', sub: 'سیاره الماسی', dist: '۴۰', mass: '۸.۶', year: '۲۰۰۴', status: '✅ تأیید شده', tag: 'rare' },
+            { emoji: '🌐', name: 'GJ 1061d', sub: 'نزدیک‌ترین منطقه سکونت', dist: '۱۲', mass: '۱.۶', year: '۲۰۲۰', status: '✅ تأیید شده', tag: 'new' },
+        ];
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let favorites = [];
+        let filterActive = false;
+        let currentData = [...PLANETS];
+        let currentModalPlanet = null;
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+        function render(data) {
+            const grid = document.getElementById('planetGrid');
+            grid.innerHTML = '';
+            data.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'planet-card';
+
+                let tagHtml = '';
+                const tagMap = {
+                    'new': '<span class="tag tag-new">جدید</span>',
+                    'hot': '<span class="tag tag-hot">🔥 داغ</span>',
+                    'pop': '<span class="tag tag-pop">⭐ محبوب</span>',
+                    'rare': '<span class="tag tag-rare">💎 کمیاب</span>'
+                };
+                if (p.tag && tagMap[p.tag]) tagHtml = tagMap[p.tag];
+
+                card.innerHTML = `
+                    ${tagHtml}
+                    <span class="emoji">${p.emoji}</span>
+                    <div class="pname">${p.name}</div>
+                    <div class="psub">${p.sub}</div>
+                    <div class="pdist">${p.dist} سال نوری</div>
+                `;
+                card.onclick = () => openModal(p);
+                grid.appendChild(card);
+            });
+        }
+
+        // ============================================================
+        // SORT
+        // ============================================================
+        function sortPlanets(type) {
+            const btns = document.querySelectorAll('.sort-group button');
+            btns.forEach(b => b.classList.remove('active'));
+            let sorted = [...currentData];
+            if (type === 'distance') {
+                sorted.sort((a, b) => {
+                    const da = parseInt(a.dist.replace(/,/g, ''));
+                    const db = parseInt(b.dist.replace(/,/g, ''));
+                    return da - db;
+                });
+                btns[1].classList.add('active');
+                toast('📊 مرتب‌سازی بر اساس فاصله', 'info');
+            } else if (type === 'name') {
+                sorted.sort((a, b) => a.name.localeCompare(b.name));
+                btns[2].classList.add('active');
+                toast('📊 مرتب‌سازی بر اساس نام', 'info');
+            } else {
+                btns[0].classList.add('active');
+                toast('📊 مرتب‌سازی بر اساس جدیدترین', 'info');
+            }
+            render(sorted);
+        }
+
+        // ============================================================
+        // FILTER
+        // ============================================================
+        function toggleFilter() {
+            filterActive = !filterActive;
+            const btns = document.querySelectorAll('.btn-ghost');
+            btns[0].classList.toggle('active');
+            if (filterActive) {
+                const filtered = PLANETS.filter(p => p.sub.includes('سکونت'));
+                currentData = filtered;
+                render(filtered);
+                toast('🔍 فیلتر: نمایش سیارات قابل سکونت', 'info');
+            } else {
+                currentData = [...PLANETS];
+                render(PLANETS);
+                toast('🔍 فیلتر غیرفعال شد', 'info');
+            }
+        }
+
+        // ============================================================
+        // SEARCH
+        // ============================================================
+        function searchPlanet() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) { toast('📝 نام سیاره را وارد کنید', 'warn'); return; }
+            const results = PLANETS.filter(p =>
+                p.name.includes(q) || p.sub.includes(q)
+            );
+            if (results.length) {
+                currentData = results;
+                render(results);
+                toast(`🔍 ${results.length} نتیجه برای "${q}"`, 'success');
+            } else {
+                toast(`❌ نتیجه‌ای برای "${q}" یافت نشد`, 'err');
+                currentData = [...PLANETS];
+                render(PLANETS);
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchPlanet();
+        });
+
+        // ============================================================
+        // FAVORITES
+        // ============================================================
+        function showFavs() {
+            if (favorites.length === 0) {
+                toast('💔 هنوز سیاره‌ای به علاقه‌مندی‌ها اضافه نشده', 'warn');
+                return;
+            }
+            const filtered = PLANETS.filter(p => favorites.includes(p.name));
+            currentData = filtered;
+            render(filtered);
+            toast(`❤️ ${favorites.length} سیاره در علاقه‌مندی‌ها`, 'success');
+        }
+
+        function toggleFav() {
+            const name = document.getElementById('mName').textContent;
+            const idx = favorites.indexOf(name);
+            const btn = document.querySelector('.btn-fav');
+            if (idx > -1) {
+                favorites.splice(idx, 1);
+                btn.classList.remove('is-fav');
+                toast(`💔 ${name} از علاقه‌مندی‌ها حذف شد`, 'warn');
+            } else {
+                favorites.push(name);
+                btn.classList.add('is-fav');
+                toast(`❤️ ${name} به علاقه‌مندی‌ها اضافه شد`, 'success');
+            }
+        }
+
+        // ============================================================
+        // RESET
+        // ============================================================
+        function resetAll() {
+            currentData = [...PLANETS];
+            render(PLANETS);
+            document.getElementById('searchInput').value = '';
+            filterActive = false;
+            document.querySelectorAll('.btn-ghost').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.sort-group button').forEach((b, i) => {
+                b.classList.toggle('active', i === 0);
+            });
+            toast('🔄 بازنشانی کامل انجام شد', 'success');
+        }
+
+        // ============================================================
+        // MODAL
+        // ============================================================
+        function openModal(p) {
+            currentModalPlanet = p;
+            document.getElementById('mEmoji').textContent = p.emoji;
+            document.getElementById('mName').textContent = p.name;
+            document.getElementById('mSub').textContent = p.sub;
+            document.getElementById('mDist').textContent = p.dist + ' سال نوری';
+            document.getElementById('mMass').textContent = p.mass + ' برابر زمین';
+            document.getElementById('mYear').textContent = p.year;
+            document.getElementById('mStatus').textContent = p.status;
+            const favBtn = document.querySelector('.btn-fav');
+            favBtn.classList.toggle('is-fav', favorites.includes(p.name));
+            document.getElementById('modalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function explorePlanet() {
+            const name = document.getElementById('mName').textContent;
+            toast(`🚀 کاوش عمیق ${name} با تلسکوپ جیمز وب (رزولوشن 0.0002 arcsec)...`, 'info');
+            closeModal();
+        }
+
+        document.getElementById('modalOverlay').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ============================================================
+        // STATS
+        // ============================================================
+        function statClick(num, label) {
+            toast(`📊 ${num} — ${label}`, 'info');
+        }
+
+        // ============================================================
+        // TOAST SYSTEM
+        // ============================================================
+        function toast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const map = {
+                success: 'ok',
+                info: 'info',
+                warn: 'warn',
+                err: 'err'
+            };
+            const icons = {
+                ok: 'fa-check-circle',
+                info: 'fa-info-circle',
+                warn: 'fa-exclamation-triangle',
+                err: 'fa-times-circle'
+            };
+            icon.className = `t-icon ${map[type] || 'ok'}`;
+            icon.innerHTML = `<i class="fas ${icons[map[type]] || icons.ok}"></i>`;
+            document.getElementById('toastMsg').textContent = msg;
+            el.classList.add('show');
+            clearTimeout(el._timeout);
+            el._timeout = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        // ============================================================
+        // UNIVERSE - ADVANCED 3D PARTICLES
+        // ============================================================
+        (function createUniverse() {
+            const container = document.getElementById('universe');
+
+            // Stars with pulsar effect
+            for (let i = 0; i < 350; i++) {
+                const star = document.createElement('div');
+                const size = Math.random() * 4.5 + 0.5;
+                star.className = 'star pulsar';
+                star.style.cssText = `
+                    width:${size}px;height:${size}px;
+                    left:${Math.random()*100}%;
+                    top:${Math.random()*100}%;
+                    --duration:${Math.random()*5+2}s;
+                    animation-delay:${Math.random()*6}s;
+                `;
+                container.appendChild(star);
+            }
+
+            // Nebulas with animation
+            const nebulaColors = ['#4f46e5', '#7c3aed', '#ec4899', '#f59e0b', '#3b82f6', '#06b6d4', '#8b5cf6'];
+            for (let i = 0; i < 7; i++) {
+                const neb = document.createElement('div');
+                neb.className = 'nebula';
+                const size = Math.random() * 600 + 200;
+                neb.style.cssText = `
+                    width:${size}px;height:${size}px;
+                    left:${Math.random()*100}%;
+                    top:${Math.random()*100}%;
+                    background:${nebulaColors[i % nebulaColors.length]};
+                    animation-delay:${Math.random()*15}s;
+                `;
+                container.appendChild(neb);
+            }
+
+            // Shooting stars
+            for (let i = 0; i < 5; i++) {
+                const ss = document.createElement('div');
+                ss.className = 'shooting-star';
+                ss.style.cssText = `
+                    left:${Math.random()*80+10}%;
+                    top:${Math.random()*40+10}%;
+                    animation-duration:${Math.random()*3+2.5}s;
+                    animation-delay:${Math.random()*15+5}s;
+                `;
+                container.appendChild(ss);
+            }
+
+            // Galaxy spiral
+            for (let i = 0; i < 2; i++) {
+                const galaxy = document.createElement('div');
+                galaxy.className = 'galaxy-spiral';
+                const size = Math.random() * 400 + 300;
+                galaxy.style.cssText = `
+                    width:${size}px;height:${size}px;
+                    left:${Math.random()*100}%;
+                    top:${Math.random()*100}%;
+                    animation-delay:${Math.random()*30}s;
+                `;
+                container.appendChild(galaxy);
+            }
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes twinkleStar {
+                    0% { opacity: 0.02; transform: scale(0.3); }
+                    100% { opacity: 1; transform: scale(1.6); }
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+
+        // ============================================================
+        // COUNTER ANIMATION
+        // ============================================================
+        function animateCounter(el, target, duration = 1600) {
+            let start = 0;
+            const step = target / (duration / 16);
+            const timer = setInterval(() => {
+                start += step;
+                if (start >= target) { start = target; clearInterval(timer); }
+                el.textContent = new Intl.NumberFormat('fa-IR').format(Math.floor(start));
+            }, 16);
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        render(PLANETS);
+        setTimeout(() => {
+            animateCounter(document.getElementById('stat1'), 5642);
+            animateCounter(document.getElementById('stat2'), 124);
+            animateCounter(document.getElementById('stat3'), 28);
+        }, 500);
+        setTimeout(() => {
+            toast('🚀 به سامانه پیشرفته کشف سیارات خوش آمدید!', 'success');
+        }, 800);
+    </script>
+
+</body>
+</html>
